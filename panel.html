@@ -1,0 +1,56 @@
+<div id="chat-folder-panel" class="chat-folder">
+    <div class="chat-folder-backdrop"></div>
+    <div class="chat-folder-shell">
+        <header class="chat-folder-header">
+            <div class="chat-folder-title">
+                <i class="fa-solid fa-folder-tree"></i>
+                <span>Chat Organizer</span>
+            </div>
+            <div class="chat-folder-header-actions">
+                <input id="chat-folder-search" type="search" placeholder="Search chats">
+                <button id="chat-folder-close" class="chat-folder-ghost">Close</button>
+            </div>
+        </header>
+        <div class="chat-folder-body">
+            <aside class="chat-folder-sidebar">
+                <div class="chat-folder-sidebar-header">
+                    <div class="folder-actions">
+                        <button data-action="create-folder" class="chat-folder-primary" title="Create folder">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                        <button data-action="rename-folder" class="chat-folder-ghost" title="Rename folder">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button data-action="delete-folder" class="chat-folder-danger" title="Delete folder(s)">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                    <label class="folder-select-all">
+                        <input id="chat-folder-folder-select-all" type="checkbox">
+                        <span>Select all</span>
+                    </label>
+                </div>
+                <div id="chat-folder-folders" class="folder-list"></div>
+            </aside>
+            <section class="chat-folder-main">
+                <div class="chat-folder-toolbar">
+                    <div class="toolbar-left">
+                        <label class="select-all">
+                            <input id="chat-folder-select-all" type="checkbox">
+                            <span>Select all</span>
+                        </label>
+                        <span id="chat-folder-selection-count" class="selection-count">0 selected</span>
+                    </div>
+                    <div class="toolbar-right">
+                        <span class="move-label">Target folder</span>
+                        <select id="chat-folder-move-target"></select>
+                        <button data-action="move-selected" class="chat-folder-primary">Move</button>
+                        <button data-action="delete-selected" class="chat-folder-danger">Bulk Delete</button>
+                    </div>
+                </div>
+                <div id="chat-folder-empty" class="empty-state hidden">No chats to display.</div>
+                <div id="chat-folder-chatlist" class="chat-list"></div>
+            </section>
+        </div>
+    </div>
+</div>
