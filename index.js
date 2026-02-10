@@ -17,10 +17,10 @@ let folderListEl;
 let folderSelectAllEl;
 let chatListEl;
 let searchInputEl;
-let moveSelectEl;
 let selectAllEl;
 let emptyStateEl;
 let selectionCountEl;
+let selectionPreviewEl;
 let bodyEl;
 let tabFoldersBtn;
 let tabChatsBtn;
@@ -151,10 +151,10 @@ async function ensurePanel() {
         folderSelectAllEl = document.getElementById('chat-folder-folder-select-all');
         chatListEl = document.getElementById('chat-folder-chatlist');
         searchInputEl = document.getElementById('chat-folder-search');
-        moveSelectEl = document.getElementById('chat-folder-move-target');
         selectAllEl = document.getElementById('chat-folder-select-all');
         emptyStateEl = document.getElementById('chat-folder-empty');
         selectionCountEl = document.getElementById('chat-folder-selection-count');
+        selectionPreviewEl = document.getElementById('chat-folder-selection-preview');
         bodyEl = panelEl?.querySelector('.chat-folder-body');
         tabFoldersBtn = document.getElementById('chat-folder-tab-folders');
         tabChatsBtn = document.getElementById('chat-folder-tab-chats');
@@ -270,7 +270,6 @@ async function refreshData() {
         syncFolderSelection();
         syncAssignmentsWithItems(chatItems);
         renderFolders();
-        renderMoveTargets();
         renderChatList();
         if (contentSearchQuery) {
             await runContentSearch(contentSearchQuery);
@@ -421,7 +420,6 @@ function renderFolders() {
         checkbox.type = 'checkbox';
         checkbox.disabled = folder.locked;
         checkbox.checked = selectedFolderIds.has(folder.id);
-        checkbox.addEventListener('click', evt => evt.stopPropagation());
         checkbox.addEventListener('change', () => toggleFolderSelection(folder.id, checkbox.checked));
 
         const nameSpan = document.createElement('span');
@@ -457,33 +455,6 @@ function toggleFolderSelection(folderId, checked) {
     updateFolderSelectAllUI();
 }
 
-function renderMoveTargets() {
-    if (!moveSelectEl) return;
-    const state = getState();
-    moveSelectEl.innerHTML = '';
-    for (const folder of state.folders) {
-        if (folder.id === 'all') continue;
-        const option = document.createElement('option');
-        option.value = folder.id;
-        option.textContent = folder.name;
-        moveSelectEl.appendChild(option);
-    }
-
-    syncMoveTargetSelection(state.lastFolderId);
-}
-
-function syncMoveTargetSelection(preferredId) {
-    if (!moveSelectEl) return;
-    const state = getState();
-    const desired = preferredId && preferredId !== 'all' ? preferredId : 'unassigned';
-    const available = Array.from(moveSelectEl.options).map(o => o.value);
-    if (available.includes(desired)) {
-        moveSelectEl.value = desired;
-    } else if (available.length) {
-        moveSelectEl.value = available[0];
-    }
-}
-
 function selectFolder(folderId) {
     const state = getState();
     if (!state.folders.some(f => f.id === folderId)) {
@@ -491,10 +462,8 @@ function selectFolder(folderId) {
     }
     state.lastFolderId = folderId;
     persistSettings();
-    selectedKeys = new Set();
     renderFolders();
     renderChatList();
-    renderMoveTargets();
 }
 
 function filterItems() {
@@ -638,9 +607,35 @@ function updateSelectionUI(filteredItems) {
     if (!selectionCountEl || !selectAllEl) return;
     const total = filteredItems.length;
     const selectedInView = filteredItems.filter(item => selectedKeys.has(normalizeKey(item))).length;
-    selectionCountEl.textContent = `${selectedInView} selected`;
+    const selectedTotal = selectedKeys.size;
+    selectionCountEl.textContent = `${selectedTotal} selected`;
     selectAllEl.checked = total > 0 && selectedInView === total;
     selectAllEl.indeterminate = selectedInView > 0 && selectedInView < total;
+
+    if (selectionPreviewEl) {
+        if (selectedTotal === 0) {
+            selectionPreviewEl.textContent = '';
+            selectionPreviewEl.classList.add('hidden');
+        } else {
+            const names = [];
+            for (const item of chatItems) {
+                if (selectedKeys.has(normalizeKey(item))) {
+                    names.push(getPreviewName(item.chatName));
+                    if (names.length >= 5) break;
+                }
+            }
+            const remaining = selectedTotal - names.length;
+            const more = remaining > 0 ? `, +${remaining} more` : '';
+            selectionPreviewEl.textContent = `[${names.join(', ')}${more}]`;
+            selectionPreviewEl.classList.remove('hidden');
+        }
+    }
+}
+
+function getPreviewName(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return String(name || '');
+    return parts.slice(0, Math.min(parts.length, 2)).join(' ');
 }
 
 function handleSelectAll(checked) {
@@ -823,7 +818,6 @@ async function createFolder() {
     state.lastFolderId = id;
     persistSettings();
     renderFolders();
-    renderMoveTargets();
     renderChatList();
 }
 
@@ -845,7 +839,6 @@ async function renameFolder() {
     folder.name = trimmed;
     persistSettings();
     renderFolders();
-    renderMoveTargets();
     renderChatList();
 }
 
@@ -873,7 +866,6 @@ async function deleteFolder() {
 
     persistSettings();
     renderFolders();
-    renderMoveTargets();
     renderChatList();
 }
 
@@ -892,19 +884,39 @@ function removeFolderById(folderId) {
 }
 
 async function moveSelected() {
-    const target = moveSelectEl?.value || 'unassigned';
-    const items = filterItems();
-    if (!items.length) return;
-
-    for (const item of items) {
-        const key = normalizeKey(item);
-        if (selectedKeys.has(key)) {
-            setAssignment(key, target);
-        }
+    const target = getMoveTargetFolderId();
+    if (!target) {
+        await callGenericPopup('Select a target folder in the sidebar to move chats into.', POPUP_TYPE.TEXT);
+        return;
     }
+
+    const selectedItems = chatItems.filter(item => selectedKeys.has(normalizeKey(item)));
+    if (!selectedItems.length) return;
+
+    for (const item of selectedItems) {
+        setAssignment(normalizeKey(item), target);
+    }
+
+    selectedKeys.clear();
 
     renderFolders();
     renderChatList();
+}
+
+function getMoveTargetFolderId() {
+    const state = getState();
+    for (const id of selectedFolderIds) {
+        const folder = state.folders.find(f => f.id === id);
+        if (folder && !folder.locked && folder.id !== 'all') {
+            return folder.id;
+        }
+    }
+
+    if (state.lastFolderId && state.lastFolderId !== 'all') {
+        return state.lastFolderId;
+    }
+
+    return null;
 }
 
 async function deleteSelected() {

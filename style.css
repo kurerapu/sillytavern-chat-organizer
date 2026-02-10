@@ -250,6 +250,11 @@
     flex-wrap: wrap;
 }
 
+.toolbar-left {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 .toolbar-right button {
     height: 36px;
     padding: 0 12px;
@@ -277,28 +282,18 @@
     font-size: 13px;
 }
 
-#chat-folder-move-target {
-    min-width: 220px;
-    padding: 10px 14px;
-    background: #10131b;
-    border: 1px solid var(--cf-border);
-    border-radius: 9px;
-    color: var(--cf-foreground);
-    appearance: none;
-    background-image:
-        linear-gradient(45deg, transparent 50%, var(--cf-foreground) 50%),
-        linear-gradient(135deg, var(--cf-foreground) 50%, transparent 50%);
-    background-position:
-        calc(100% - 18px) 50%,
-        calc(100% - 12px) 50%;
-    background-size: 6px 6px, 6px 6px;
-    background-repeat: no-repeat;
-    padding-right: 30px;
-    min-height: 38px;
-    line-height: 1.35;
-    box-sizing: border-box;
-    display: inline-flex;
-    align-items: center;
+.selection-preview {
+    color: var(--cf-muted);
+    font-size: 12px;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.selection-preview.hidden {
+    display: none;
 }
 
 .chat-folder button {
@@ -590,25 +585,36 @@
     }
 
     .chat-folder-toolbar {
-        flex-direction: column;
-        align-items: flex-start;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        grid-template-areas:
+            "left right"
+            "preview preview";
+        align-items: start;
+        gap: 8px 10px;
     }
 
     .toolbar-left,
     .toolbar-right {
-        width: 100%;
+        width: auto;
         justify-content: flex-start;
         flex-wrap: wrap;
     }
 
+    .toolbar-left {
+        grid-area: left;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
     .toolbar-right {
+        grid-area: right;
         flex-direction: row;
         gap: 8px;
         align-items: center;
-    }
-
-    #chat-folder-move-target {
-        flex: 1 1 60%;
+        margin-left: 0;
+        align-self: start;
     }
 
     .toolbar-right button {
@@ -618,6 +624,12 @@
         min-width: 32px;
         padding: 0;
         justify-content: center;
+    }
+
+    .selection-preview {
+        grid-area: preview;
+        width: 100%;
+        margin-top: 0;
     }
 
     #chat-folder-search {
@@ -690,5 +702,13 @@
 
     .chat-list {
         padding-bottom: calc(96px + env(safe-area-inset-bottom, 24px));
+    }
+
+    .selection-preview {
+        max-width: 100%;
+        white-space: normal;
+        word-break: break-word;
+        overflow: visible;
+        text-overflow: clip;
     }
 }
