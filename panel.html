@@ -28,6 +28,14 @@
                         <button data-action="delete-folder" class="chat-folder-danger" title="Delete folder(s)">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
+                        <div class="scope-buttons">
+                            <button data-action="scope-global" class="chat-folder-ghost scope-left" title="Global folders" aria-label="Global folders">
+                                <i class="fa-solid fa-globe"></i>
+                            </button>
+                            <button data-action="scope-persona" class="chat-folder-ghost scope-right" title="Current persona folders" aria-label="Current persona folders">
+                                <i class="fa-solid fa-user"></i>
+                            </button>
+                        </div>
                     </div>
                     <label class="folder-select-all">
                         <input id="chat-folder-folder-select-all" type="checkbox">

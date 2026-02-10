@@ -1,4 +1,4 @@
-import { characters, eventSource, event_types, getCurrentChatId, getPastCharacterChats, openCharacterChat, renameGroupOrCharacterChat, deleteCharacterChatByName, selectCharacterById, setActiveCharacter, saveSettingsDebounced, getThumbnailUrl, system_avatar, getRequestHeaders } from '../../../../script.js';
+import { characters, eventSource, event_types, getCurrentChatId, getPastCharacterChats, openCharacterChat, renameGroupOrCharacterChat, deleteCharacterChatByName, selectCharacterById, setActiveCharacter, saveSettingsDebounced, getThumbnailUrl, system_avatar, getRequestHeaders, this_chid } from '../../../../script.js';
 import { renderExtensionTemplateAsync, extension_settings } from '../../../extensions.js';
 import { groups, openGroupById, openGroupChat, deleteGroupChatByName } from '../../../group-chats.js';
 import { callGenericPopup, POPUP_TYPE } from '../../../popup.js';
@@ -24,6 +24,7 @@ let selectionPreviewEl;
 let bodyEl;
 let tabFoldersBtn;
 let tabChatsBtn;
+let isGlobalScope = false;
 
 let chatItems = [];
 let selectedKeys = new Set();
@@ -35,41 +36,78 @@ let contentSearchQuery = '';
 let contentSearchMatches = null;
 let searchToken = 0;
 
-function ensureSettings() {
-    const state = extension_settings.chatFolder || {};
+function ensureFolderState(state) {
+    const next = state && typeof state === 'object' ? state : {};
 
-    if (!Array.isArray(state.folders)) {
-        state.folders = [];
+    if (!Array.isArray(next.folders)) {
+        next.folders = [];
     }
 
-    if (!state.assignments || typeof state.assignments !== 'object') {
-        state.assignments = {};
+    if (!next.assignments || typeof next.assignments !== 'object') {
+        next.assignments = {};
     }
 
     for (const sys of DEFAULT_FOLDERS) {
-        if (!state.folders.some(f => f.id === sys.id)) {
-            state.folders.unshift({ ...sys });
+        if (!next.folders.some(f => f.id === sys.id)) {
+            next.folders.unshift({ ...sys });
         }
     }
 
-    // keep system folders locked and names intact
-    state.folders = state.folders.map(folder => {
+    next.folders = next.folders.map(folder => {
         const systemMatch = DEFAULT_FOLDERS.find(f => f.id === folder.id);
         return systemMatch ? { ...folder, name: systemMatch.name, locked: true } : folder;
     });
 
-    const knownFolderIds = new Set(state.folders.map(f => f.id));
-
-    if (!state.lastFolderId || !knownFolderIds.has(state.lastFolderId)) {
-        state.lastFolderId = 'all';
+    const knownFolderIds = new Set(next.folders.map(f => f.id));
+    if (!next.lastFolderId || !knownFolderIds.has(next.lastFolderId)) {
+        next.lastFolderId = 'all';
     }
 
-    extension_settings.chatFolder = state;
+    return next;
+}
+
+function ensureSettings() {
+    const root = extension_settings.chatFolder || {};
+
+    // Migrate legacy flat structure to scoped global/perCharacter buckets.
+    if (Array.isArray(root.folders) || typeof root.assignments === 'object') {
+        root.global = root.global || {};
+        root.global.folders = root.folders || [];
+        root.global.assignments = root.assignments || {};
+        root.global.lastFolderId = root.lastFolderId;
+        delete root.folders;
+        delete root.assignments;
+        delete root.lastFolderId;
+    }
+
+    root.global = ensureFolderState(root.global);
+
+    if (!root.perCharacter || typeof root.perCharacter !== 'object') {
+        root.perCharacter = {};
+    }
+
+    for (const [id, val] of Object.entries(root.perCharacter)) {
+        root.perCharacter[id] = ensureFolderState(val);
+    }
+
+    extension_settings.chatFolder = root;
+}
+
+function isCharacterContext() {
+    return typeof this_chid !== 'undefined' && this_chid !== null;
 }
 
 function getState() {
     ensureSettings();
-    return extension_settings.chatFolder;
+    const root = extension_settings.chatFolder;
+    const activeCharacterId = isCharacterContext() ? String(this_chid) : null;
+    if (!isGlobalScope && activeCharacterId) {
+        if (!root.perCharacter[activeCharacterId]) {
+            root.perCharacter[activeCharacterId] = ensureFolderState({});
+        }
+        return root.perCharacter[activeCharacterId];
+    }
+    return root.global;
 }
 
 function persistSettings() {
@@ -199,6 +237,10 @@ function onPanelClick(event) {
             return renameFolder();
         case 'delete-folder':
             return deleteFolder();
+        case 'scope-global':
+            return setScope(true);
+        case 'scope-persona':
+            return setScope(false);
         case 'move-selected':
             return moveSelected();
         case 'delete-selected':
@@ -233,6 +275,11 @@ async function togglePanel(show) {
         await refreshData();
         chatListEl?.scrollTo?.({ top: 0, behavior: 'instant' });
     }
+}
+
+function setScope(global) {
+    isGlobalScope = !!global;
+    refreshData();
 }
 
 function setMobileTab(tab) {
@@ -397,11 +444,11 @@ async function loadChatItems() {
 function renderFolders() {
     if (!folderListEl) return;
     const state = getState();
+    const scopedItems = filterItems({ skipFilter: true });
     const counts = new Map();
-    const total = chatItems.length;
-    counts.set('all', total);
+    counts.set('all', scopedItems.length);
 
-    for (const item of chatItems) {
+    for (const item of scopedItems) {
         const key = normalizeKey(item);
         const folderId = getAssignment(key);
         counts.set(folderId, (counts.get(folderId) || 0) + 1);
@@ -440,6 +487,11 @@ function renderFolders() {
     }
 
     updateFolderSelectAllUI();
+
+    const scopeButtons = panelEl?.querySelector('.scope-buttons');
+    if (scopeButtons) {
+        scopeButtons.classList.toggle('hidden', !isCharacterContext());
+    }
 }
 
 function toggleFolderSelection(folderId, checked) {
@@ -466,12 +518,21 @@ function selectFolder(folderId) {
     renderChatList();
 }
 
-function filterItems() {
+function filterItems(options = {}) {
     const state = getState();
     const query = (searchInputEl?.value || '').trim().toLowerCase();
     const hasQuery = !!query;
     const matchSet = hasQuery && contentSearchQuery === query ? contentSearchMatches : null;
-    return chatItems.filter(item => {
+    const activeCharacterId = !isGlobalScope && isCharacterContext() ? String(this_chid) : null;
+    const scopedItems = activeCharacterId
+        ? chatItems.filter(item => item.type === 'character' && item.ownerId === activeCharacterId)
+        : chatItems;
+
+    if (options.skipFilter) {
+        return scopedItems;
+    }
+
+    return scopedItems.filter(item => {
         const key = normalizeKey(item);
         const assignment = getAssignment(key);
         const inFolder = state.lastFolderId === 'all' || assignment === state.lastFolderId;
@@ -564,7 +625,11 @@ function buildChatCard(item) {
 
     const folderTag = document.createElement('span');
     folderTag.className = 'chat-folder-tag';
-    folderTag.textContent = getFolderName(folderId);
+    folderTag.textContent = getGlobalFolderNameForKey(key);
+
+    const perFolderTag = document.createElement('span');
+    perFolderTag.className = 'chat-folder-tag chat-folder-tag-per';
+    perFolderTag.textContent = getPerCharacterFolderNameForKey(key, item.ownerId);
 
     const openBtn = document.createElement('button');
     openBtn.className = 'open-btn';
@@ -596,7 +661,7 @@ function buildChatCard(item) {
         void deleteChat(item);
     });
 
-    actions.append(folderTag, openBtn, renameBtn, deleteBtn);
+    actions.append(folderTag, perFolderTag, openBtn, renameBtn, deleteBtn);
 
     card.append(checkboxWrap, avatarWrap, meta, actions);
     card.addEventListener('click', () => void openChat(item));
@@ -658,9 +723,35 @@ function handleSearchChange() {
     renderChatList();
 }
 
-function getFolderName(folderId) {
-    const state = getState();
+function getFolderNameFromState(folderId, state) {
+    if (!state || !Array.isArray(state.folders)) return 'Unassigned';
     return state.folders.find(f => f.id === folderId)?.name || 'Unassigned';
+}
+
+function getFolderName(folderId) {
+    return getFolderNameFromState(folderId, getState());
+}
+
+function getGlobalFolderNameForKey(key) {
+    ensureSettings();
+    const root = extension_settings.chatFolder || {};
+    const state = root.global;
+    if (!state) return 'Unassigned';
+    const assigned = state.assignments?.[key];
+    const valid = state.folders?.some(f => f.id === assigned);
+    const folderId = valid ? assigned : 'unassigned';
+    return getFolderNameFromState(folderId, state);
+}
+
+function getPerCharacterFolderNameForKey(key, ownerId) {
+    ensureSettings();
+    const root = extension_settings.chatFolder || {};
+    const state = root.perCharacter?.[String(ownerId)];
+    if (!state) return 'Unassigned';
+    const assigned = state.assignments?.[key];
+    const valid = state.folders?.some(f => f.id === assigned);
+    const folderId = valid ? assigned : 'unassigned';
+    return getFolderNameFromState(folderId, state);
 }
 
 async function runContentSearch(query) {
@@ -1016,6 +1107,7 @@ async function openChat(item) {
         await openGroupById(item.ownerId);
         await openGroupChat(item.ownerId, item.chatName);
     } else {
+        const previousCharacterId = isCharacterContext() ? String(this_chid) : null;
         const characterIndex = Number(item.ownerId);
         await selectCharacterById(characterIndex);
         setActiveCharacter(item.ownerAvatar);
@@ -1023,6 +1115,9 @@ async function openChat(item) {
         const currentId = getCurrentChatId();
         if (currentId !== item.chatName) {
             await openCharacterChat(item.chatName);
+        }
+        if (isGlobalScope && previousCharacterId !== String(item.ownerId)) {
+            isGlobalScope = false;
         }
     }
     togglePanel(false);

@@ -143,9 +143,41 @@
 }
 
 .folder-actions {
+    position: relative;
     display: inline-flex;
     gap: 8px;
     justify-content: center;
+    width: 100%;
+}
+
+.scope-buttons {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+.scope-buttons.hidden {
+    display: none;
+}
+
+.scope-buttons .scope-left {
+    border-radius: 7px;
+    padding: 7px 8px;
+}
+
+.scope-buttons .scope-right {
+    border-radius: 7px;
+    padding: 7px 10px;
+}
+
+.scope-buttons button {
+    pointer-events: auto;
+    background: #ffc04c;
+    color: #0b0b0b;
+    border: 1px solid #ffc04c;
 }
 
 .folder-select-all {
@@ -470,6 +502,12 @@
     line-height: 1;
     min-height: 24px;
     border: 1px solid rgba(75, 163, 255, 0.3);
+}
+
+.chat-folder-tag-per {
+    background: rgba(248, 200, 220, 0.2);
+    color: #f08fb6;
+    border-color: rgba(248, 200, 220, 0.5);
 }
 
 #chat-folder-empty {
