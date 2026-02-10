@@ -668,4 +668,16 @@
     .chat-actions .chat-folder-tag {
         margin-right: auto;
     }
+
+    .chat-title {
+        font-size: 12px;
+    }
+
+    .chat-info-line {
+        font-size: 10px;
+    }
+
+    .chat-snippet {
+        font-size: 11px;
+    }
 }
