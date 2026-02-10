@@ -24,10 +24,12 @@
 #chat-folder-panel {
     position: fixed;
     inset: 0;
-    z-index: 2000;
+    z-index: 4000;
     display: none;
     font-size: 14px;
     color: var(--cf-foreground);
+    padding-top: 12px;
+    box-sizing: border-box;
 }
 
 #chat-folder-panel.visible {
