@@ -393,6 +393,12 @@
     background: #131927;
 }
 
+.chat-card.selected {
+    border-color: var(--cf-accent);
+    background: rgba(75, 163, 255, 0.12);
+    box-shadow: 0 0 0 1px rgba(75, 163, 255, 0.25);
+}
+
 .chat-checkbox {
     display: flex;
     align-items: center;

@@ -578,6 +578,7 @@ function buildChatCard(item) {
         } else {
             selectedKeys.delete(key);
         }
+        setCardSelectionState(card, checkbox.checked);
         updateSelectionUI(filterItems());
     });
     checkboxWrap.appendChild(checkbox);
@@ -664,8 +665,14 @@ function buildChatCard(item) {
     actions.append(folderTag, perFolderTag, openBtn, renameBtn, deleteBtn);
 
     card.append(checkboxWrap, avatarWrap, meta, actions);
+    setCardSelectionState(card, checkbox.checked);
     card.addEventListener('click', () => void openChat(item));
     return card;
+}
+
+function setCardSelectionState(card, isSelected) {
+    if (!card) return;
+    card.classList.toggle('selected', !!isSelected);
 }
 
 function updateSelectionUI(filteredItems) {
