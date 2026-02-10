@@ -79,6 +79,31 @@
     gap: 10px;
 }
 
+.chat-folder-mobile-tabs {
+    display: none;
+}
+
+.chat-folder-tab {
+    border: 1px solid var(--cf-border);
+    background: var(--cf-surface);
+    color: var(--cf-foreground);
+    padding: 10px 12px;
+    border-radius: 9px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: none;
+}
+
+.chat-folder-tab.active {
+    background: var(--cf-accent);
+    border-color: var(--cf-accent);
+    color: #0b1220;
+}
+
+.chat-folder-tab:active {
+    transform: none;
+}
+
 #chat-folder-search {
     width: 240px;
     padding: 9px 11px;
@@ -488,10 +513,60 @@
         overflow: auto;
     }
 
+    .chat-folder-mobile-tabs {
+        display: flex;
+        gap: 10px;
+        padding: 10px 10px 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: var(--cf-panel);
+        z-index: 2;
+    }
+
+    .chat-folder-mobile-tabs .chat-folder-tab {
+        flex: 1;
+        text-align: center;
+    }
+
     .chat-folder-body {
         display: flex;
         flex-direction: column;
         min-height: 0;
+        flex: 1 1 auto;
+        position: relative;
+        padding-top: 52px;
+    }
+
+    .chat-folder-sidebar,
+    .chat-folder-main {
+        position: absolute;
+        inset: 52px 0 0 0;
+        overflow: auto;
+        background: var(--cf-surface);
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    .chat-folder-body[data-mobile-tab="folders"] .chat-folder-sidebar {
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    .chat-folder-body[data-mobile-tab="folders"] .chat-folder-main {
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .chat-folder-body[data-mobile-tab="chats"] .chat-folder-sidebar {
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .chat-folder-body[data-mobile-tab="chats"] .chat-folder-main {
+        visibility: visible;
+        pointer-events: auto;
     }
 
     .chat-folder-sidebar {

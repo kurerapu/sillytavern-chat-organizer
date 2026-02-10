@@ -21,6 +21,9 @@ let moveSelectEl;
 let selectAllEl;
 let emptyStateEl;
 let selectionCountEl;
+let bodyEl;
+let tabFoldersBtn;
+let tabChatsBtn;
 
 let chatItems = [];
 let selectedKeys = new Set();
@@ -152,6 +155,9 @@ async function ensurePanel() {
         selectAllEl = document.getElementById('chat-folder-select-all');
         emptyStateEl = document.getElementById('chat-folder-empty');
         selectionCountEl = document.getElementById('chat-folder-selection-count');
+        bodyEl = panelEl?.querySelector('.chat-folder-body');
+        tabFoldersBtn = document.getElementById('chat-folder-tab-folders');
+        tabChatsBtn = document.getElementById('chat-folder-tab-chats');
 
         document.getElementById('chat-folder-close')?.addEventListener('click', () => togglePanel(false));
         panelEl?.querySelector('.chat-folder-backdrop')?.addEventListener('click', () => togglePanel(false));
@@ -159,8 +165,12 @@ async function ensurePanel() {
         searchInputEl?.addEventListener('input', () => handleSearchChange());
         selectAllEl?.addEventListener('change', () => handleSelectAll(selectAllEl.checked));
         folderSelectAllEl?.addEventListener('change', () => handleFolderSelectAll(folderSelectAllEl.checked));
+        tabFoldersBtn?.addEventListener('click', () => setMobileTab('folders'));
+        tabChatsBtn?.addEventListener('click', () => setMobileTab('chats'));
 
         panelEl?.addEventListener('click', onPanelClick);
+
+        setMobileTab('folders');
     } catch (error) {
         console.error('Chat Folder: failed to build panel', error);
         await callGenericPopup('Could not open Chat Folder panel. Check console for details.', POPUP_TYPE.TEXT);
@@ -213,6 +223,7 @@ async function togglePanel(show) {
     panelEl.classList.toggle('visible', show);
     panelEl.classList.toggle('hidden', !show);
     if (show) {
+        setMobileTab('folders');
         searchToken++;
         contentSearchQuery = '';
         contentSearchMatches = null;
@@ -223,6 +234,14 @@ async function togglePanel(show) {
         chatListEl?.scrollTo?.({ top: 0, behavior: 'instant' });
         searchInputEl?.focus();
     }
+}
+
+function setMobileTab(tab) {
+    if (!bodyEl) return;
+    const target = tab === 'chats' ? 'chats' : 'folders';
+    bodyEl.setAttribute('data-mobile-tab', target);
+    tabFoldersBtn?.classList.toggle('active', target === 'folders');
+    tabChatsBtn?.classList.toggle('active', target === 'chats');
 }
 
 async function refreshData() {
