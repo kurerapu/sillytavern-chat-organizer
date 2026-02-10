@@ -47,8 +47,12 @@
                     </div>
                     <div class="toolbar-right">
                         <select id="chat-folder-move-target"></select>
-                        <button data-action="move-selected" class="chat-folder-primary">Move</button>
-                        <button data-action="delete-selected" class="chat-folder-danger">Bulk Delete</button>
+                        <button data-action="move-selected" class="chat-folder-primary" title="Move selected" aria-label="Move selected">
+                            <i class="fa-solid fa-arrow-left-long"></i>
+                        </button>
+                        <button data-action="delete-selected" class="chat-folder-danger" title="Bulk delete" aria-label="Bulk delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </div>
                 </div>
                 <div id="chat-folder-empty" class="empty-state hidden">No chats to display.</div>
