@@ -585,7 +585,9 @@ function buildChatCard(item) {
 
     const openBtn = document.createElement('button');
     openBtn.className = 'open-btn';
-    openBtn.textContent = 'Open';
+    openBtn.innerHTML = '<i class="fa-solid fa-up-right-from-square"></i>';
+    openBtn.title = 'Open chat';
+    openBtn.setAttribute('aria-label', 'Open chat');
     openBtn.addEventListener('click', evt => {
         evt.stopPropagation();
         void openChat(item);
@@ -593,7 +595,9 @@ function buildChatCard(item) {
 
     const renameBtn = document.createElement('button');
     renameBtn.className = 'rename-btn';
-    renameBtn.textContent = 'Rename';
+    renameBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+    renameBtn.title = 'Rename chat';
+    renameBtn.setAttribute('aria-label', 'Rename chat');
     renameBtn.addEventListener('click', evt => {
         evt.stopPropagation();
         void renameChat(item);
@@ -601,7 +605,9 @@ function buildChatCard(item) {
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn';
-    deleteBtn.textContent = 'Delete';
+    deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+    deleteBtn.title = 'Delete chat';
+    deleteBtn.setAttribute('aria-label', 'Delete chat');
     deleteBtn.addEventListener('click', evt => {
         evt.stopPropagation();
         void deleteChat(item);
