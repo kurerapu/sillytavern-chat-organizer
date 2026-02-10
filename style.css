@@ -628,10 +628,11 @@
     }
 
     .chat-card {
-        grid-template-columns: auto auto 1fr;
+        grid-template-columns: auto 1fr;
         grid-template-areas:
-            "checkbox avatar meta"
-            "actions actions actions";
+            "checkbox meta"
+            "avatar meta"
+            "actions actions";
         align-items: flex-start;
     }
 
@@ -641,6 +642,7 @@
 
     .chat-avatar {
         grid-area: avatar;
+        margin-top: 6px;
     }
 
     .chat-meta {
