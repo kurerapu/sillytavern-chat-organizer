@@ -468,6 +468,20 @@ function renderMoveTargets() {
         option.textContent = folder.name;
         moveSelectEl.appendChild(option);
     }
+
+    syncMoveTargetSelection(state.lastFolderId);
+}
+
+function syncMoveTargetSelection(preferredId) {
+    if (!moveSelectEl) return;
+    const state = getState();
+    const desired = preferredId && preferredId !== 'all' ? preferredId : 'unassigned';
+    const available = Array.from(moveSelectEl.options).map(o => o.value);
+    if (available.includes(desired)) {
+        moveSelectEl.value = desired;
+    } else if (available.length) {
+        moveSelectEl.value = available[0];
+    }
 }
 
 function selectFolder(folderId) {
@@ -480,6 +494,7 @@ function selectFolder(folderId) {
     selectedKeys = new Set();
     renderFolders();
     renderChatList();
+    renderMoveTargets();
 }
 
 function filterItems() {
