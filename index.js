@@ -25,6 +25,7 @@ let bodyEl;
 let tabFoldersBtn;
 let tabChatsBtn;
 let isGlobalScope = false;
+let isColdStart = true;
 
 let chatItems = [];
 let selectedKeys = new Set();
@@ -91,6 +92,27 @@ function ensureSettings() {
     }
 
     extension_settings.chatFolder = root;
+}
+
+function resetLastFolderToAllOnColdStart() {
+    if (!isColdStart) return;
+
+    ensureSettings();
+    const root = extension_settings.chatFolder;
+    if (root?.global) {
+        root.global.lastFolderId = 'all';
+    }
+
+    if (root?.perCharacter && typeof root.perCharacter === 'object') {
+        for (const state of Object.values(root.perCharacter)) {
+            if (state && typeof state === 'object') {
+                state.lastFolderId = 'all';
+            }
+        }
+    }
+
+    isColdStart = false;
+    persistSettings();
 }
 
 function isCharacterContext() {
@@ -1162,6 +1184,7 @@ function registerCloseOnOtherMenus() {
 
 (function init() {
     ensureSettings();
+    resetLastFolderToAllOnColdStart();
     injectMenuButton();
     registerEvents();
     registerCloseOnOtherMenus();
