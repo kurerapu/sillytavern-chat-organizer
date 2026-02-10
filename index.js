@@ -232,7 +232,6 @@ async function togglePanel(show) {
         }
         await refreshData();
         chatListEl?.scrollTo?.({ top: 0, behavior: 'instant' });
-        searchInputEl?.focus();
     }
 }
 
