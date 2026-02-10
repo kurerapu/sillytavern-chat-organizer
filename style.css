@@ -461,6 +461,20 @@
 
 .chat-actions {
     display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.chat-folder-tags {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.chat-action-buttons {
+    display: flex;
     align-items: center;
     gap: 8px;
 }

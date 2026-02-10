@@ -646,6 +646,9 @@ function buildChatCard(item) {
     const actions = document.createElement('div');
     actions.className = 'chat-actions';
 
+    const folderTags = document.createElement('div');
+    folderTags.className = 'chat-folder-tags';
+
     const folderTag = document.createElement('span');
     folderTag.className = 'chat-folder-tag';
     folderTag.textContent = getGlobalFolderNameForKey(key);
@@ -684,7 +687,13 @@ function buildChatCard(item) {
         void deleteChat(item);
     });
 
-    actions.append(folderTag, perFolderTag, openBtn, renameBtn, deleteBtn);
+    folderTags.append(folderTag, perFolderTag);
+
+    const actionButtons = document.createElement('div');
+    actionButtons.className = 'chat-action-buttons';
+    actionButtons.append(openBtn, renameBtn, deleteBtn);
+
+    actions.append(folderTags, actionButtons);
 
     card.append(checkboxWrap, avatarWrap, meta, actions);
     setCardSelectionState(card, checkbox.checked);
