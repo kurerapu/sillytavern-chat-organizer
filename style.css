@@ -73,6 +73,16 @@
     letter-spacing: 0.25px;
 }
 
+.chat-folder-version {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--cf-muted);
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--cf-border);
+    background: var(--cf-surface);
+}
+
 .chat-folder-header-actions {
     display: flex;
     align-items: center;
