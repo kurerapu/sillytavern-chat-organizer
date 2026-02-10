@@ -132,6 +132,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    min-height: 0;
 }
 
 .chat-folder-sidebar-header {
@@ -575,6 +576,12 @@
         border-bottom: 1px solid var(--cf-border);
         padding: 10px 10px 12px;
         flex: 0 0 auto;
+        min-height: 0;
+        overflow: auto;
+    }
+
+    .folder-list {
+        padding-bottom: calc(96px + env(safe-area-inset-bottom, 24px));
     }
 
     .chat-folder-main {
@@ -679,5 +686,9 @@
 
     .chat-snippet {
         font-size: 11px;
+    }
+
+    .chat-list {
+        padding-bottom: calc(96px + env(safe-area-inset-bottom, 24px));
     }
 }
