@@ -734,8 +734,8 @@
         grid-area: actions;
         flex-direction: row;
         gap: 8px;
-        justify-content: flex-end;
-        align-items: center;
+        justify-content: flex-start;
+        align-items: flex-start;
     }
 
     .chat-actions button {
@@ -746,8 +746,16 @@
         justify-content: center;
     }
 
-    .chat-actions .chat-folder-tag {
-        margin-right: auto;
+    .chat-folder-tags {
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .chat-folder-tag,
+    .chat-folder-tag-per {
+        font-size: 10px;
+        padding: 3px 7px;
+        min-height: 20px;
     }
 
     .chat-title {
