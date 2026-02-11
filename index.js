@@ -287,7 +287,8 @@ async function togglePanel(show) {
     panelEl.classList.toggle('visible', show);
     panelEl.classList.toggle('hidden', !show);
     if (show) {
-        setMobileTab('folders');
+        const isMobile = window.matchMedia?.('(max-width: 768px)')?.matches;
+        setMobileTab(isMobile ? 'chats' : 'folders');
         searchToken++;
         contentSearchQuery = '';
         contentSearchMatches = null;
