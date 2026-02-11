@@ -210,7 +210,8 @@
 
 .folder-list {
     flex: 1;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -241,9 +242,10 @@
 }
 
 .folder-left {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
 }
 
 .folder-left input[type="checkbox"] {
@@ -257,6 +259,11 @@
 
 .folder-name {
     font-weight: 700;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+    min-width: 0;
 }
 
 .folder-count {
