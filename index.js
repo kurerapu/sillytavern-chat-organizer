@@ -657,16 +657,6 @@ function buildChatCard(item) {
     perFolderTag.className = 'chat-folder-tag chat-folder-tag-per';
     perFolderTag.textContent = getPerCharacterFolderNameForKey(key, item.ownerId);
 
-    const openBtn = document.createElement('button');
-    openBtn.className = 'open-btn';
-    openBtn.innerHTML = '<i class="fa-solid fa-up-right-from-square"></i>';
-    openBtn.title = 'Open chat';
-    openBtn.setAttribute('aria-label', 'Open chat');
-    openBtn.addEventListener('click', evt => {
-        evt.stopPropagation();
-        void openChat(item);
-    });
-
     const renameBtn = document.createElement('button');
     renameBtn.className = 'rename-btn';
     renameBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
@@ -691,7 +681,7 @@ function buildChatCard(item) {
 
     const actionButtons = document.createElement('div');
     actionButtons.className = 'chat-action-buttons';
-    actionButtons.append(openBtn, renameBtn, deleteBtn);
+    actionButtons.append(renameBtn, deleteBtn);
 
     actions.append(folderTags, actionButtons);
 

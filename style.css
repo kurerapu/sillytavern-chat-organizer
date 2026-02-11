@@ -497,12 +497,6 @@
     color: var(--cf-foreground);
 }
 
-.chat-actions .open-btn {
-    background: linear-gradient(120deg, var(--cf-accent), var(--cf-accent-strong));
-    border-color: var(--cf-accent);
-    color: #0b1220;
-}
-
 .chat-actions .rename-btn {
     background: #f6e58d;
     border-color: #f6e58d;
