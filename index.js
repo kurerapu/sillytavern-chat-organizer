@@ -26,6 +26,7 @@ let tabFoldersBtn;
 let tabChatsBtn;
 let isGlobalScope = false;
 let isColdStart = true;
+let currentChatContext = { currentChatId: null, activeCharacterId: null };
 
 let chatItems = [];
 let selectedKeys = new Set();
@@ -322,6 +323,10 @@ async function refreshData() {
         const items = await loadChatItems();
         const statsMap = await fetchChatStats(items);
         statsAvailable = statsMap.size > 0;
+        currentChatContext = {
+            currentChatId: getCurrentChatId?.(),
+            activeCharacterId: isCharacterContext() ? String(this_chid) : null,
+        };
         chatItems = items.map(item => {
             const stats = statsMap.get(normalizeKey(item));
             if (!stats) return item;
@@ -331,7 +336,7 @@ async function refreshData() {
                 fileSize: stats.file_size,
                 lastModified: typeof stats.last_modified === 'number' ? stats.last_modified : undefined,
             };
-        }).sort((a, b) => getSortTimestamp(b) - getSortTimestamp(a));
+        }).sort((a, b) => compareItems(a, b, currentChatContext));
         selectedKeys = new Set();
         selectedFolderIds = new Set();
         contentSearchMatches = null;
@@ -381,6 +386,23 @@ function getSortTimestamp(item) {
     if (typeof item.lastModified === 'number') return item.lastModified;
     const parsed = Date.parse(item.lastDate || '');
     return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function isCurrentChatItem(item, ctx) {
+    if (!ctx || !ctx.currentChatId) return false;
+    if (item.chatName !== ctx.currentChatId) return false;
+    if (item.type === 'character' && ctx.activeCharacterId) {
+        return String(item.ownerId) === String(ctx.activeCharacterId);
+    }
+    return true;
+}
+
+function compareItems(a, b, ctx) {
+    const aCurrent = isCurrentChatItem(a, ctx);
+    const bCurrent = isCurrentChatItem(b, ctx);
+    if (aCurrent && !bCurrent) return -1;
+    if (bCurrent && !aCurrent) return 1;
+    return getSortTimestamp(b) - getSortTimestamp(a);
 }
 
 function syncFolderSelection() {
@@ -687,6 +709,13 @@ function buildChatCard(item) {
     actions.append(folderTags, actionButtons);
 
     card.append(checkboxWrap, avatarWrap, meta, actions);
+    if (isCurrentChatItem(item, currentChatContext)) {
+        card.classList.add('current-chat');
+        const ribbon = document.createElement('div');
+        ribbon.className = 'chat-current-ribbon';
+        ribbon.textContent = 'Current Chat';
+        card.appendChild(ribbon);
+    }
     setCardSelectionState(card, checkbox.checked);
     card.addEventListener('click', () => void openChat(item));
     return card;

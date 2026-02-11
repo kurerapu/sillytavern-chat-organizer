@@ -395,6 +395,7 @@
     border: 1px solid var(--cf-border);
     border-radius: 12px;
     background: #11151f;
+    position: relative;
     transition: border 0.12s ease, background 0.12s ease;
 }
 
@@ -407,6 +408,45 @@
     border-color: var(--cf-accent);
     background: rgba(75, 163, 255, 0.12);
     box-shadow: 0 0 0 1px rgba(75, 163, 255, 0.25);
+}
+
+.chat-card.current-chat {
+    padding-top: 20px;
+    border: 1px solid rgba(153, 204, 153, 0.3);
+}
+
+.chat-card.current-chat:hover {
+    border-color: rgba(153, 204, 153, 0.6);
+    background: rgba(17, 21, 31, 0.96);
+}
+
+.chat-card.current-chat.selected:hover {
+    border-color: var(--cf-accent);
+    background: rgba(75, 163, 255, 0.12);
+    box-shadow: 0 0 0 1px rgba(75, 163, 255, 0.25);
+}
+
+.chat-card.current-chat.selected {
+    border-color: var(--cf-accent);
+    box-shadow: 0 0 0 1px rgba(75, 163, 255, 0.25);
+}
+
+.chat-current-ribbon {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -25%);
+    padding: 4px 10px;
+    background: rgba(153, 204, 153, 1);
+    color: #0b1220;
+    border-radius: 7px;
+    border: 1px solid rgba(153, 204, 153, 1);
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 0.25px;
+    pointer-events: none;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    z-index: 1;
 }
 
 .chat-checkbox {
